@@ -433,7 +433,6 @@
       </header>
 
       <section class="panel" aria-label="六合彩模擬器">
-        <!-- 控制區 -->
         <div class="control-grid">
           <div>
             <label for="count">要輸出多少個號碼</label>
@@ -445,23 +444,12 @@
 
         <div id="message" class="message">預設輸出 7 個號碼；可輸入 1 至 49。</div>
 
-        <!-- 結果顯示區 -->
         <div class="result-card">
-          <div id="apocalypse" class="apocalypse hidden" aria-live="polite" aria-hidden="true">
-            <div class="portal">
-              <div class="sigil sigil-a"></div>
-              <div class="sigil sigil-b"></div>
-              <div class="sigil sigil-c"></div>
-              <div class="beam"></div>
-              <div class="runes">四九星盤・月曉啟示・號運凝形</div>
-            </div>
-            <div class="apocalypse-text">天啟正在展開</div>
-          </div>
+          <div id="apocalypse" class="apocalypse hidden" aria-live="polite" aria-hidden="true"></div>
           <div id="balls" class="balls" aria-live="polite"></div>
           <div id="readout" class="readout muted">尚未抽號</div>
         </div>
 
-        <!-- 複式投注分析（重點） -->
         <div class="prize-analysis">
           <h3>🎯 複式投注分析（以目前抽出的號碼）</h3>
           
@@ -481,7 +469,6 @@
           </div>
         </div>
 
-        <!-- 歷史紀錄 -->
         <div class="history">
           <div class="history-title">
             <span>最近紀錄</span>
@@ -500,8 +487,9 @@
     </footer>
   </main>
 
-  <div class="version">v1.5 • 2026.05.02</div>
-  <script>
+  <div class="version">v1.6 • 2026.05.02</div>
+
+<script>
 (() => {
   "use strict";
 
@@ -522,9 +510,7 @@
   let latest = [];
   let history = [];
 
-  function pad(n) {
-    return String(n).padStart(2, "0");
-  }
+  function pad(n) { return String(n).padStart(2, "0"); }
 
   function colourClass(n) {
     if (redSet.has(n)) return "red";
@@ -533,15 +519,10 @@
   }
 
   function secureRandomInt(maxExclusive) {
-    if (!Number.isInteger(maxExclusive) || maxExclusive <= 0) {
-      throw new RangeError("maxExclusive must be a positive integer.");
-    }
     const bucket = new Uint32Array(1);
     const maxUint = 0x100000000;
     const limit = maxUint - (maxUint % maxExclusive);
-    do {
-      window.crypto.getRandomValues(bucket);
-    } while (bucket[0] >= limit);
+    do { window.crypto.getRandomValues(bucket); } while (bucket[0] >= limit);
     return bucket[0] % maxExclusive;
   }
 
@@ -557,16 +538,11 @@
   function binom(n, k) {
     if (k < 0 || k > n) return 0;
     let res = 1;
-    for (let i = 0; i < k; i++) {
-      res *= (n - i);
-      res /= (i + 1);
-    }
+    for (let i = 0; i < k; i++) { res *= (n - i); res /= (i + 1); }
     return Math.round(res);
   }
 
-  function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function runApocalypse(count) {
     ballsEl.innerHTML = "";
@@ -580,12 +556,10 @@
       "月曉啟示：正在擾動命數之池……",
       "天啟完成：魔法泡泡即將凝成……"
     ];
-
     for (const phase of phases) {
       messageEl.textContent = phase;
       await wait(900);
     }
-
     await wait(300);
     apocalypseEl.classList.add("closing");
     await wait(450);
@@ -598,7 +572,6 @@
     ballsEl.innerHTML = "";
     readoutEl.classList.add("muted");
     readoutEl.textContent = "魔法泡泡正在緩慢凝成號碼……";
-
     for (const [index, n] of numbers.entries()) {
       const ball = document.createElement("div");
       ball.className = `ball ${colourClass(n)}`;
@@ -607,14 +580,12 @@
       ballsEl.appendChild(ball);
       await wait(650);
     }
-
     readoutEl.classList.remove("muted");
     readoutEl.textContent = numbers.map(pad).join("　");
   }
 
   function renderPrizeAnalysis(numbers) {
     if (!prizeContent) return;
-
     prizeContent.innerHTML = `<div style="color:#ffd28b; padding:12px; text-align:center;">載入中...</div>`;
 
     setTimeout(() => {
@@ -638,7 +609,7 @@
 
         const win1 = (p1 * 100).toFixed(5);
         const win3 = (p3 * 100).toFixed(4);
-        const totalPrize3 = Math.round(est3 * (binom(K, 5) * (49 - K)));
+        const thirdPrizeCount = binom(K, 5) * (49 - K);
 
         prizeContent.innerHTML = `
           <div class="prize-stats">
@@ -659,7 +630,7 @@
                 <th>中獎條件</th>
                 <th>中獎機率</th>
                 <th>預估每注彩金</th>
-                <th>總彩金</th>
+                <th>總彩金 / 備註</th>
               </tr>
             </thead>
             <tbody>
@@ -682,7 +653,7 @@
                 <td>5 個正確</td>
                 <td class="prob">${win3}%</td>
                 <td class="prize">HK$${est3.toLocaleString()}</td>
-                <td class="prize">HK$${totalPrize3.toLocaleString()}</td>
+                <td style="color:#ffd700; font-weight:700;">最多可中 ${thirdPrizeCount} 個三獎</td>
               </tr>
             </tbody>
           </table>
@@ -708,7 +679,6 @@
       historyList.appendChild(empty);
       return;
     }
-
     history.forEach((item, idx) => {
       const row = document.createElement("div");
       row.className = "history-row";
@@ -765,7 +735,6 @@
     }
   }
 
-  // 初始化
   drawBtn.addEventListener("click", runDraw);
   copyBtn.addEventListener("click", copyResult);
   clearBtn.addEventListener("click", () => {
@@ -786,7 +755,6 @@
     if (event.key === "Enter") runDraw();
   });
 
-  // 載入 data.json
   async function loadLotteryData() {
     try {
       const response = await fetch('data.json');
@@ -804,3 +772,5 @@
   renderHistory();
 })();
 </script>
+</body>
+</html>
