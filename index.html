@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>異世酒館六合彩模擬器</title>
+<style>
+  :root {
+    --gold: #f6c46b;
+    --gold-deep: #9d5b19;
+    --ink: rgba(8, 7, 10, .74);
+    --paper: rgba(255, 244, 220, .88);
+    --line: rgba(255, 218, 145, .42);
+    --glow: rgba(118, 215, 255, .72);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    font-family: "Noto Serif TC", "Microsoft JhengHei", "PingFang TC", serif;
+    color: #fff;
+    background: #09070a;
+  }
+
+  body {
+    min-height: 100vh;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,.82)),
+      url("bg-pattern.png");
+    background-size: cover;
+    background-position: center top;
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  .veil {
+    min-height: 100vh;
+    padding: 22px 18px 30px;
+    background:
+      radial-gradient(circle at 50% 48%, rgba(75, 174, 255, .07), transparent 24%),
+      radial-gradient(circle at 24% 76%, rgba(255, 216, 114, .07), transparent 28%),
+      rgba(0, 0, 0, .04);
+    backdrop-filter: saturate(1.03);
+  }
+
+  .shell {
+    width: min(960px, 100%);
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin: 0 auto 10px;
+    text-shadow: 0 2px 10px #000, 0 0 28px var(--glow);
+    opacity: .82;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    letter-spacing: .24em;
+    font-size: 12px;
+    color: #ffe3a1;
+    border: 1px solid rgba(255, 218, 145, .25);
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.16);
+  }
+
+  h1 {
+    margin: 12px 0 6px;
+    font-size: clamp(26px, 4.2vw, 48px);
+    line-height: 1.05;
+    font-weight: 800;
+    color: rgba(255, 244, 212, .92);
+  }
+
+  .sub {
+    margin: 0;
+    color: rgba(255,255,255,.82);
+    font-size: 15px;
+  }
+
+  .panel {
+    position: relative;
+    margin: 54vh auto 0;
+    padding: 18px;
+    border: 1px solid rgba(255, 218, 145, .24);
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(22, 13, 8, .34), rgba(8, 8, 14, .42)),
+      linear-gradient(90deg, rgba(255, 200, 93, .055), rgba(92, 200, 255, .07));
+    box-shadow:
+      0 16px 48px rgba(0,0,0,.38),
+      inset 0 0 20px rgba(255, 221, 138, .07),
+      0 0 32px rgba(89, 186, 255, .12);
+    backdrop-filter: blur(3px) saturate(1.08);
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(125, 225, 255, .35), transparent);
+    opacity: .22;
+    filter: blur(10px);
+  }
+
+  .control-grid {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 14px;
+    align-items: end;
+  }
+
+  label {
+    display: block;
+    font-size: 14px;
+    color: #ffe1a4;
+    margin-bottom: 8px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    height: 52px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 221, 155, .45);
+    background: rgba(255, 252, 238, .92);
+    color: #17110d;
+    font-size: 22px;
+    font-weight: 800;
+    text-align: center;
+    outline: none;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.15);
+  }
+
+  button {
+    height: 52px;
+    border: 0;
+    border-radius: 14px;
+    padding: 0 20px;
+    color: #251303;
+    font-weight: 900;
+    font-size: 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: .08em;
+    background:
+      linear-gradient(180deg, #fff3bc, var(--gold) 47%, #cb751f 48%, #ffcc69);
+    box-shadow:
+      0 8px 18px rgba(0,0,0,.38),
+      inset 0 2px 0 rgba(255,255,255,.62),
+      0 0 20px rgba(255, 210, 92, .25);
+  }
+
+  button.secondary {
+    background: rgba(255,255,255,.08);
+    color: #ffe8b6;
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 12px rgba(255,255,255,.05);
+  }
+
+  button:active {
+    transform: translateY(1px);
+  }
+
+  button:disabled {
+    cursor: wait;
+    opacity: .58;
+    filter: grayscale(.25);
+  }
+
+  .message {
+    min-height: 22px;
+    margin: 13px 0 2px;
+    color: #ffd28b;
+    font-size: 14px;
+  }
+
+  .result-card {
+    margin-top: 14px;
+    padding: 16px 14px;
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(116, 215, 255, .12), transparent 58%),
+      linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022));
+    border: 1px solid rgba(255,255,255,.09);
+  }
+
+  .balls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    min-height: 94px;
+    align-items: center;
+  }
+
+  .ball {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: "Arial Rounded MT Bold", "Microsoft JhengHei", sans-serif;
+    font-size: 25px;
+    font-weight: 900;
+    color: #15100d;
+    position: relative;
+    overflow: visible;
+    text-shadow: 0 1px 0 rgba(255,255,255,.82), 0 0 9px rgba(255,255,255,.55);
+    animation: bubbleSummon .92s cubic-bezier(.16, .84, .25, 1) both, bubbleFloat 3.2s ease-in-out infinite;
+  }
+
+  .ball::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 31% 24%, rgba(255,255,255,.96) 0 9%, rgba(255,255,255,.38) 10% 17%, transparent 19%),
+      radial-gradient(circle at 63% 68%, rgba(255,255,255,.18), transparent 34%),
+      radial-gradient(circle, rgba(255,255,255,.72) 0 33%, rgba(255,255,255,.28) 52%, rgba(255,255,255,.06) 70%, transparent 100%);
+    border: 1px solid rgba(255,255,255,.72);
+    box-shadow:
+      inset -7px -9px 18px rgba(255,255,255,.20),
+      inset 8px 11px 18px rgba(255,255,255,.28),
+      0 0 18px rgba(140, 224, 255, .40);
+    z-index: 0;
+    backdrop-filter: blur(1.5px);
+  }
+
+  .ball::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255,255,255,.95) 0 2px, transparent 3px),
+      radial-gradient(circle at 13% 65%, rgba(255,255,255,.82) 0 2px, transparent 3px),
+      radial-gradient(circle at 86% 56%, rgba(255,255,255,.65) 0 1.5px, transparent 3px);
+    opacity: .8;
+    filter: blur(.1px);
+    animation: sparkleSpin 2.9s linear infinite;
+    z-index: 0;
+  }
+
+  .ball span {
+    z-index: 1;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 247, .82);
+    box-shadow: inset 0 -2px 8px rgba(0,0,0,.12), 0 0 12px rgba(255,255,255,.36);
+  }
+
+  .red {
+    background: radial-gradient(circle, rgba(255, 130, 90, .28), rgba(255, 85, 45, .16) 52%, transparent 71%);
+    box-shadow: 0 0 30px rgba(255, 106, 54, .56), 0 0 8px rgba(255,255,255,.45);
+  }
+
+  .blue {
+    background: radial-gradient(circle, rgba(104, 210, 255, .30), rgba(55, 136, 255, .16) 52%, transparent 71%);
+    box-shadow: 0 0 30px rgba(93, 190, 255, .58), 0 0 8px rgba(255,255,255,.45);
+  }
+
+  .green {
+    background: radial-gradient(circle, rgba(150, 255, 150, .30), rgba(57, 185, 68, .16) 52%, transparent 71%);
+    box-shadow: 0 0 30px rgba(81, 225, 107, .56), 0 0 8px rgba(255,255,255,.45);
+  }
+
+  @keyframes bubbleSummon {
+    0% { opacity: 0; transform: translateY(30px) scale(.42); filter: blur(7px); }
+    55% { opacity: .72; transform: translateY(-9px) scale(1.12); filter: blur(1px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  @keyframes bubbleFloat {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -5px; }
+  }
+
+  @keyframes sparkleSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .readout {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 20px;
+    color: #fff1c7;
+    letter-spacing: .05em;
+    word-break: break-word;
+  }
+
+  .history {
+    margin-top: 16px;
+    padding-top: 13px;
+    border-top: 1px dashed rgba(255, 221, 145, .20);
+  }
+
+  .history-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #ffe2a0;
+    font-size: 14px;
+  }
+
+  .history-list {
+    display: grid;
+    gap: 8px;
+    max-height: 190px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  .history-row {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.16);
+    color: rgba(255,255,255,.86);
+    font-size: 14px;
+  }
+
+  .muted {
+    color: rgba(255,255,255,.64);
+  }
+
+  footer {
+    width: min(960px, 100%);
+    margin: 14px auto 0;
+    color: rgba(255,255,255,.62);
+    font-size: 12px;
+    line-height: 1.65;
+    text-align: center;
+    text-shadow: 0 2px 8px #000;
+  }
+
+
+
+  /* Enhanced fantasy summoning stage */
+  .apocalypse {
+    position: relative;
+    min-height: 170px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 50% 58%, rgba(139, 85, 255, .22), transparent 34%),
+      radial-gradient(circle at 50% 22%, rgba(117, 229, 255, .20), transparent 42%),
+      linear-gradient(180deg, rgba(16, 10, 32, .42), rgba(2, 4, 16, .18));
+    border: 1px solid rgba(190, 240, 255, .18);
+    box-shadow:
+      inset 0 0 35px rgba(120, 210, 255, .12),
+      0 0 35px rgba(113, 83, 255, .18);
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity .45s ease, transform .45s ease, max-height .45s ease, min-height .45s ease, margin .45s ease;
+    margin-bottom: 14px;
+  }
+
+  .apocalypse.hidden {
+    opacity: 0;
+    pointer-events: none;
+    max-height: 0;
+    min-height: 0;
+    margin: 0;
+    border-width: 0;
+    transform: scale(.96);
+  }
+
+  .apocalypse.closing {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+
+  .apocalypse::before,
+  .apocalypse::after {
+    content: "";
+    position: absolute;
+    inset: -35%;
+    pointer-events: none;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.9) 0 1px, transparent 1.8px) 12px 18px / 54px 54px,
+      radial-gradient(circle, rgba(137,232,255,.8) 0 1px, transparent 1.9px) 0 0 / 73px 73px;
+    opacity: .45;
+    animation: starAscend 3.4s linear infinite;
+  }
+
+  .apocalypse::after {
+    opacity: .28;
+    filter: blur(1px);
+    animation-duration: 4.8s;
+    animation-direction: reverse;
+  }
+
+  .portal {
+    position: relative;
+    width: min(370px, 90%);
+    height: 150px;
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+  }
+
+  .sigil {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(209, 248, 255, .78);
+    box-shadow:
+      0 0 18px rgba(106, 224, 255, .55),
+      inset 0 0 22px rgba(142, 90, 255, .24);
+  }
+
+  .sigil::before,
+  .sigil::after {
+    content: "";
+    position: absolute;
+    inset: 14%;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 224, 143, .62);
+  }
+
+  .sigil::after {
+    inset: 31%;
+    border-style: solid;
+    border-color: rgba(255,255,255,.58);
+  }
+
+  .sigil-a {
+    width: 142px;
+    height: 142px;
+    animation: sigilRotate 3.6s linear infinite, portalPulse 1.4s ease-in-out infinite;
+  }
+
+  .sigil-b {
+    width: 104px;
+    height: 104px;
+    border-color: rgba(255, 221, 132, .76);
+    transform: rotate(45deg);
+    animation: sigilRotateReverse 2.7s linear infinite;
+  }
+
+  .sigil-c {
+    width: 70px;
+    height: 70px;
+    border-color: rgba(184, 150, 255, .86);
+    box-shadow: 0 0 24px rgba(180, 126, 255, .7), inset 0 0 16px rgba(255,255,255,.2);
+    animation: portalPulse .9s ease-in-out infinite;
+  }
+
+  .beam {
+    position: absolute;
+    width: 54px;
+    height: 165px;
+    bottom: -18px;
+    background:
+      linear-gradient(180deg, transparent, rgba(190, 252, 255, .78) 38%, rgba(118, 130, 255, .36) 72%, transparent),
+      radial-gradient(ellipse at center, rgba(255,255,255,.8), transparent 55%);
+    clip-path: polygon(44% 0, 56% 0, 83% 100%, 17% 100%);
+    filter: blur(.8px);
+    opacity: .78;
+    animation: beamRise 1.15s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  .runes {
+    position: absolute;
+    bottom: 5px;
+    width: 100%;
+    text-align: center;
+    color: rgba(255, 239, 184, .88);
+    letter-spacing: .24em;
+    font-size: 12px;
+    text-shadow: 0 0 12px rgba(255, 224, 133, .86), 0 0 24px rgba(95, 214, 255, .7);
+    animation: runeDrift 1.9s ease-in-out infinite;
+  }
+
+  .apocalypse-text {
+    position: absolute;
+    bottom: 18px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: .22em;
+    color: rgba(218, 247, 255, .94);
+    text-shadow: 0 0 12px rgba(99, 219, 255, .9), 0 0 24px rgba(165, 113, 255, .7);
+  }
+
+  .ball {
+    isolation: isolate;
+    overflow: visible !important;
+    color: #120d08;
+    text-shadow: 0 1px 0 rgba(255,255,255,.95), 0 0 14px rgba(255,255,255,.95), 0 0 28px rgba(130,235,255,.7);
+    animation: bubbleSummonMagus 1.85s cubic-bezier(.08, .78, .12, 1) both, bubbleFloat 5.6s ease-in-out infinite !important;
+  }
+
+  .ball::before {
+    inset: -2px !important;
+    background:
+      radial-gradient(circle at 28% 22%, rgba(255,255,255,1) 0 7%, rgba(255,255,255,.55) 8% 15%, transparent 18%),
+      radial-gradient(circle at 69% 74%, rgba(255,255,255,.34), transparent 35%),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.82) 0 24%, rgba(255,255,255,.38) 42%, rgba(157, 232, 255, .18) 62%, transparent 78%),
+      conic-gradient(from 25deg, rgba(255,255,255,.1), rgba(104,224,255,.5), rgba(196,132,255,.52), rgba(255,220,118,.46), rgba(255,255,255,.1));
+    border: 1px solid rgba(225, 251, 255, .82) !important;
+    box-shadow:
+      inset -10px -14px 24px rgba(255,255,255,.22),
+      inset 12px 14px 24px rgba(255,255,255,.34),
+      0 0 16px rgba(255,255,255,.72),
+      0 0 34px rgba(95, 220, 255, .68),
+      0 0 62px rgba(166, 102, 255, .36) !important;
+    backdrop-filter: blur(2px) saturate(1.4) !important;
+    animation: bubbleBreath 2.8s ease-in-out infinite;
+  }
+
+  .ball::after {
+    inset: -18px !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255,255,255,1) 0 2px, transparent 3px),
+      radial-gradient(circle at 10% 62%, rgba(255,230,151,.95) 0 2px, transparent 3.5px),
+      radial-gradient(circle at 88% 54%, rgba(143,237,255,.88) 0 1.8px, transparent 3px),
+      conic-gradient(from 0deg, transparent 0 26%, rgba(255,255,255,.55) 28% 30%, transparent 32% 59%, rgba(155, 113, 255, .55) 61% 63%, transparent 65% 100%);
+    opacity: .95 !important;
+    filter: drop-shadow(0 0 8px rgba(148,235,255,.85));
+    animation: sparkleSpin 4.8s linear infinite !important;
+  }
+
+  .ball .ring {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    border: 1px solid rgba(219, 248, 255, .45);
+    box-shadow: 0 0 14px rgba(137, 228, 255, .34), inset 0 0 12px rgba(255,255,255,.18);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .ball .ring-one { animation: orbitTilt 4.2s linear infinite; }
+  .ball .ring-two { transform: rotate(62deg) scaleX(1.18); border-color: rgba(255, 218, 132, .42); animation: orbitTiltReverse 5.2s linear infinite; }
+
+  .ball span {
+    position: relative;
+    z-index: 3 !important;
+    background: rgba(255, 255, 247, .88) !important;
+    border: 1px solid rgba(255,255,255,.78);
+    box-shadow:
+      inset 0 -3px 9px rgba(0,0,0,.13),
+      inset 0 2px 8px rgba(255,255,255,.72),
+      0 0 16px rgba(255,255,255,.62) !important;
+  }
+
+  .red { box-shadow: 0 0 26px rgba(255, 106, 54, .78), 0 0 62px rgba(255, 99, 52, .34), 0 0 10px rgba(255,255,255,.62) !important; }
+  .blue { box-shadow: 0 0 26px rgba(93, 190, 255, .82), 0 0 62px rgba(100, 112, 255, .34), 0 0 10px rgba(255,255,255,.62) !important; }
+  .green { box-shadow: 0 0 26px rgba(81, 225, 107, .78), 0 0 62px rgba(78, 255, 182, .30), 0 0 10px rgba(255,255,255,.62) !important; }
+
+  @keyframes starAscend {
+    from { transform: translateY(32px) rotate(0deg); }
+    to { transform: translateY(-32px) rotate(18deg); }
+  }
+
+  @keyframes sigilRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes sigilRotateReverse {
+    from { transform: rotate(405deg); }
+    to { transform: rotate(45deg); }
+  }
+
+  @keyframes portalPulse {
+    0%, 100% { opacity: .72; filter: brightness(1); }
+    50% { opacity: 1; filter: brightness(1.42); }
+  }
+
+  @keyframes beamRise {
+    0%, 100% { transform: translateY(8px) scaleX(.72); opacity: .44; }
+    50% { transform: translateY(-8px) scaleX(1.08); opacity: .92; }
+  }
+
+  @keyframes runeDrift {
+    0%, 100% { transform: translateY(0); opacity: .68; }
+    50% { transform: translateY(-8px); opacity: 1; }
+  }
+
+  @keyframes bubbleSummonMagus {
+    0% { opacity: 0; transform: translateY(58px) scale(.18) rotate(-14deg); filter: blur(13px) brightness(1.9); }
+    35% { opacity: .55; transform: translateY(14px) scale(.72) rotate(8deg); filter: blur(4px) brightness(1.55); }
+    70% { opacity: .94; transform: translateY(-14px) scale(1.18) rotate(0deg); filter: blur(.8px) brightness(1.18); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0) brightness(1); }
+  }
+
+  @keyframes bubbleBreath {
+    0%, 100% { transform: scale(1); opacity: .92; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+
+  @keyframes orbitTilt {
+    from { transform: rotate(0deg) scaleX(1.22); }
+    to { transform: rotate(360deg) scaleX(1.22); }
+  }
+
+  @keyframes orbitTiltReverse {
+    from { transform: rotate(62deg) scaleX(1.18); }
+    to { transform: rotate(-298deg) scaleX(1.18); }
+  }
+
+  @media (max-width: 720px) {
+    .veil { padding: 24px 12px 30px; }
+    .panel { margin-top: 50vh; padding: 15px; }
+    .control-grid { grid-template-columns: 1fr; }
+    button { width: 100%; }
+    .ball { width: 56px; height: 56px; font-size: 21px; }
+    .ball span { width: 33px; height: 33px; }
+    .history-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <main class="veil">
+    <section class="shell">
+      <header>
+        <div class="eyebrow">LUNATIC DAWN NUMBER ORACLE</div>
+        <h1>異世酒館六合彩模擬器</h1>
+        <p class="sub">輸入要抽出的號碼數量，系統會從 1 至 49 之間抽出不重複號碼。</p>
+      </header>
+
+      <section class="panel" aria-label="六合彩模擬器">
+        <div class="control-grid">
+          <div>
+            <label for="count">要輸出多少個號碼</label>
+            <input id="count" type="number" min="1" max="49" value="7" inputmode="numeric">
+          </div>
+          <button id="drawBtn" type="button">開始占卜</button>
+          <button id="copyBtn" class="secondary" type="button">複製結果</button>
+        </div>
+
+        <div id="message" class="message">預設輸出 7 個號碼；可輸入 1 至 49。</div>
+
+        <div class="result-card">
+          <div id="apocalypse" class="apocalypse hidden" aria-live="polite" aria-hidden="true">
+            <div class="portal">
+              <div class="sigil sigil-a"></div>
+              <div class="sigil sigil-b"></div>
+              <div class="sigil sigil-c"></div>
+              <div class="beam"></div>
+              <div class="runes">四九星盤・月曉啟示・號運凝形</div>
+            </div>
+            <div class="apocalypse-text">天啟正在展開</div>
+          </div>
+          <div id="balls" class="balls" aria-live="polite"></div>
+          <div id="readout" class="readout muted">尚未抽號</div>
+        </div>
+
+        <div class="history">
+          <div class="history-title">
+            <span>最近紀錄</span>
+            <button id="clearBtn" class="secondary" type="button" style="height:34px;padding:0 12px;font-size:12px;">清除紀錄</button>
+          </div>
+          <div id="historyList" class="history-list">
+            <div class="muted">暫無紀錄。</div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <footer>
+      此頁只作隨機模擬與介面展示，不構成投注建議，亦不具預測中獎能力。<br>
+      隨機抽號採用瀏覽器 Crypto API；每次抽出的號碼不重複，並按由小至大排列。
+    </footer>
+  </main>
+
+<script>
+(() => {
+  "use strict";
+
+  const redSet = new Set([1,2,7,8,12,13,18,19,23,24,29,30,34,35,40,45,46]);
+  const blueSet = new Set([3,4,9,10,14,15,20,25,26,31,36,37,41,42,47,48]);
+
+  const countInput = document.getElementById("count");
+  const drawBtn = document.getElementById("drawBtn");
+  const copyBtn = document.getElementById("copyBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const ballsEl = document.getElementById("balls");
+  const apocalypseEl = document.getElementById("apocalypse");
+  const readoutEl = document.getElementById("readout");
+  const messageEl = document.getElementById("message");
+  const historyList = document.getElementById("historyList");
+
+  let latest = [];
+  let history = [];
+
+  function pad(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function colourClass(n) {
+    if (redSet.has(n)) return "red";
+    if (blueSet.has(n)) return "blue";
+    return "green";
+  }
+
+  function secureRandomInt(maxExclusive) {
+    if (!Number.isInteger(maxExclusive) || maxExclusive <= 0) {
+      throw new RangeError("maxExclusive must be a positive integer.");
+    }
+
+    const bucket = new Uint32Array(1);
+    const maxUint = 0x100000000;
+    const limit = maxUint - (maxUint % maxExclusive);
+
+    do {
+      window.crypto.getRandomValues(bucket);
+    } while (bucket[0] >= limit);
+
+    return bucket[0] % maxExclusive;
+  }
+
+  function drawNumbers(count) {
+    const pool = Array.from({ length: 49 }, (_, i) => i + 1);
+
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = secureRandomInt(i + 1);
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    return pool.slice(0, count).sort((a, b) => a - b);
+  }
+
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function runApocalypse(count) {
+    ballsEl.innerHTML = "";
+    apocalypseEl.classList.add("hidden");
+    apocalypseEl.classList.remove("closing");
+    apocalypseEl.setAttribute("aria-hidden", "true");
+    readoutEl.classList.add("muted");
+    readoutEl.textContent = "天啟未竟，號碼尚未凝形……";
+
+    apocalypseEl.classList.remove("hidden", "closing");
+    apocalypseEl.setAttribute("aria-hidden", "false");
+    void apocalypseEl.offsetWidth;
+
+    const phases = [
+      "星盤展開：正在校準四十九道符文……",
+      "月曉啟示：正在擾動命數之池……",
+      "天啟完成：魔法泡泡即將凝成……"
+    ];
+
+    for (const phase of phases) {
+      messageEl.textContent = phase;
+      await wait(1100);
+    }
+
+    await wait(350);
+    apocalypseEl.classList.add("closing");
+    await wait(520);
+    apocalypseEl.classList.add("hidden");
+    apocalypseEl.classList.remove("closing");
+    apocalypseEl.setAttribute("aria-hidden", "true");
+    messageEl.textContent = `天啟完成，正在逐一凝成 ${count} 個魔法泡泡……`;
+  }
+
+  async function renderBalls(numbers) {
+    ballsEl.innerHTML = "";
+    readoutEl.classList.add("muted");
+    readoutEl.textContent = "魔法泡泡正在緩慢凝成號碼……";
+
+    for (const [index, n] of numbers.entries()) {
+      const ball = document.createElement("div");
+      ball.className = `ball ${colourClass(n)}`;
+      ball.style.animationDelay = `${(index % 4) * 120}ms, ${index * 160}ms`;
+      ball.innerHTML = `<i class="ring ring-one"></i><i class="ring ring-two"></i><span>${pad(n)}</span>`;
+      ballsEl.appendChild(ball);
+      await wait(720);
+    }
+
+    readoutEl.classList.remove("muted");
+    readoutEl.textContent = numbers.map(pad).join("　");
+  }
+
+  function renderHistory() {
+    historyList.innerHTML = "";
+    if (history.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.textContent = "暫無紀錄。";
+      historyList.appendChild(empty);
+      return;
+    }
+
+    history.forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.className = "history-row";
+      row.innerHTML = `
+        <div class="muted">第 ${history.length - idx} 次</div>
+        <div>${item.map(pad).join("、")}</div>
+      `;
+      historyList.appendChild(row);
+    });
+  }
+
+  function validateCount() {
+    const raw = Number(countInput.value);
+    if (!Number.isInteger(raw) || raw < 1 || raw > 49) {
+      messageEl.textContent = "請輸入 1 至 49 之間的整數。";
+      return null;
+    }
+    return raw;
+  }
+
+  async function runDraw() {
+    const count = validateCount();
+    if (count === null || drawBtn.disabled) return;
+
+    drawBtn.disabled = true;
+    copyBtn.disabled = true;
+    messageEl.textContent = `正在從 49 個號碼中召喚 ${count} 個魔法泡泡……`;
+
+    latest = drawNumbers(count);
+    await runApocalypse(count);
+    await renderBalls(latest);
+
+    history.unshift(latest);
+    history = history.slice(0, 10);
+    renderHistory();
+
+    messageEl.textContent = `已從 49 個號碼中抽出 ${count} 個不重複號碼。`;
+    drawBtn.disabled = false;
+    copyBtn.disabled = false;
+  }
+
+  async function copyResult() {
+    if (latest.length === 0) {
+      messageEl.textContent = "目前未有可複製的結果，請先開始占卜。";
+      return;
+    }
+
+    const text = latest.map(pad).join(", ");
+    try {
+      await navigator.clipboard.writeText(text);
+      messageEl.textContent = "結果已複製到剪貼簿。";
+    } catch (err) {
+      messageEl.textContent = "瀏覽器未允許直接複製；請手動選取結果文字。";
+    }
+  }
+
+  drawBtn.addEventListener("click", runDraw);
+  copyBtn.addEventListener("click", copyResult);
+  clearBtn.addEventListener("click", () => {
+    history = [];
+    latest = [];
+    ballsEl.innerHTML = "";
+    apocalypseEl.classList.add("hidden");
+    apocalypseEl.classList.remove("closing");
+    apocalypseEl.setAttribute("aria-hidden", "true");
+    readoutEl.classList.add("muted");
+    readoutEl.textContent = "尚未抽號";
+    messageEl.textContent = "紀錄已清除。";
+    drawBtn.disabled = false;
+    copyBtn.disabled = false;
+    renderHistory();
+  });
+
+  countInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") runDraw();
+  });
+
+  renderHistory();
+})();
+</script>
+</body>
+</html>
