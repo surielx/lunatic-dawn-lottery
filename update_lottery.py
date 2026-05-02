@@ -13,14 +13,16 @@ def get_latest_marksix():
         response = requests.get(url, headers=headers, timeout=15)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 這裡需要根據賽馬會官網實際結構調整選擇器
-        # 以下為範例（實際可能需要微調）
-        period = soup.find('span', class_='period').text.strip() if soup.find('span', class_='period') else "2026-052"
-        snowball = soup.find('span', class_='snowball').text.strip() if soup.find('span', class_='snowball') else "8500000"
+        # 嘗試抓取期數和金多寶（實際選擇器可能需要微調）
+        period_element = soup.find('span', class_='period') or soup.find('div', class_='draw-number')
+        snowball_element = soup.find('span', class_='snowball') or soup.find('div', class_='jackpot')
+        
+        period = period_element.text.strip() if period_element else "2026-052"
+        snowball = snowball_element.text.strip().replace(",", "") if snowball_element else "8500000"
         
         data = {
             "period": period,
-            "snowball": snowball.replace(",", ""),
+            "snowball": snowball,
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         
@@ -31,7 +33,6 @@ def get_latest_marksix():
         
     except Exception as e:
         print(f"抓取失敗，使用備用資料：{e}")
-        # 備用資料
         data = {
             "period": "2026-052",
             "snowball": "8500000",
