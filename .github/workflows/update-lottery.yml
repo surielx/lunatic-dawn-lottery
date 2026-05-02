@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: pip install requests beautifulsoup4
@@ -31,5 +31,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add data.json
-          git commit -m "Auto update Mark Six data" || exit 0
-          git push
+          git diff --quiet && git diff --cached --quiet || git commit -m "Auto update Mark Six data"
+          git push || echo "No changes to push"
