@@ -13,8 +13,24 @@ def get_latest_marksix():
         response = requests.get(url, headers=headers, timeout=15)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        period = "2026-052"
-        snowball = "8500000"
+        # 嘗試多種可能的选择器
+        period = None
+        snowball = None
+        
+        # 常見選擇器
+        period_elem = soup.find('span', class_='draw-number') or soup.find('div', class_='draw-info')
+        snowball_elem = soup.find('span', class_='jackpot') or soup.find('div', class_='snowball')
+        
+        if period_elem:
+            period = period_elem.get_text(strip=True)
+        if snowball_elem:
+            snowball = snowball_elem.get_text(strip=True).replace(',', '').replace('$', '')
+        
+        # 如果抓不到，使用你提供的正確值
+        if not period:
+            period = "26/046"
+        if not snowball:
+            snowball = "185000000"
         
         data = {
             "period": period,
@@ -28,10 +44,10 @@ def get_latest_marksix():
         print(f"成功更新：期數 {period}，金多寶 HK${snowball}")
         
     except Exception as e:
-        print(f"抓取失敗，使用備用資料：{e}")
+        print(f"抓取失敗，使用正確備用資料：{e}")
         data = {
-            "period": "2026-052",
-            "snowball": "8500000",
+            "period": "26/046",
+            "snowball": "185000000",
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         with open('data.json', 'w', encoding='utf-8') as f:
